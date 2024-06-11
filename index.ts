@@ -60,16 +60,18 @@ async function processBlock() {
             continue;
         }
 
+        const data = issue.title + '\n' + issue.description + '\n' + issue.comments.map((comment: { body: any }) => comment.body).join('\n')
+
         // send the issue to the NLP model as a text string
         const nlp = await (await fetch('http://127.0.0.1:5000/scan', {
             method: 'POST',
-            body: JSON.stringify({ data: issue.title + '\n' + issue.description + '\n' + issue.comments.map((comment: { body: any }) => comment.body).join('\n') }),
+            body: JSON.stringify({ data }),
             headers: {
                 'Content-Type': 'application/json',
             },
         })).json();
 
-        if (Object.keys(nlp).length === 0) {
+        if (Object.keys(nlp).length === 0 && !data.match("<img")) {
             console.log(`Issue ${i} is clean!`);
             // remove the "Unscrubbed" label from the issue
             if (!interlock) {
@@ -89,7 +91,7 @@ async function processBlock() {
             problematicIssues.push({
                 issueNumber: i,
                 ...issue,
-                nlp: nlp,
+                nlp: data.match("<img") ? { "IMG": ["<img"], ...nlp } : nlp,
             });
         }
 
@@ -107,8 +109,8 @@ console.log('Processed all issues!');
 
 // for issues that are problematic, open them as a new tab in the browser
 for (const issue of processed) {
-    console.log(`Opening issue ${issue.issueNumber} in browser...`);
     if (!interlock) {
+        console.log(`Opening issue ${issue.issueNumber} in browser...`);
         await $`firefox -new-tab https://github.com/hackclub/hcb/issues/${issue.issueNumber}`;
     }
 }
