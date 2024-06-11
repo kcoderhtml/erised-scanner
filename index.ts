@@ -1,3 +1,5 @@
+import { $ } from "bun";
+
 type Issue = { issueNumber: number, title: string, description: string, comments: { user: string, body: string }[], nlp: any }
 
 async function getGithubIssue(index: number): Promise<any> {
@@ -87,27 +89,11 @@ async function processBlock() {
     return problematicIssues;
 }
 
-// page trough issues and ask if they are problematic
-async function checkSafe(processedIssues: Issue[]) {
-    console.log('Checking problematic issues...');
-    console.log(`Total problematic issues: ${processedIssues.length}`);
-    console.log('---');
-    for (const issue of processedIssues) {
-        console.log(`Issue ${issue.issueNumber} is problematic!`);
-        console.log(`Title: ${issue.title}`);
-        console.log(`Description: ${issue.description}`);
-        console.log(`Comments: \n${issue.comments.map((comment) => `${comment.user}: ${comment.body}`).join('\n---\n')}`);
-        console.log(`NLP: ${JSON.stringify(issue.nlp)}`);
-
-        const safe = await prompt('Is this issue safe? (y/n): ');
-        if (safe?.toLowerCase() === 'y') {
-            console.log(`Issue ${issue.issueNumber} is safe!\n\n\n\n\n`);
-        } else {
-            console.log(`Issue ${issue.issueNumber} is not safe!`);
-        }
-    }
-}
-
 const processed = await processBlock();
 console.log('Processed all issues!');
-await checkSafe(processed);
+
+// for issues that are problematic, open them as a new tab in the browser
+for (const issue of processed) {
+    console.log(`Opening issue ${issue.issueNumber} in browser...`);
+    await $`firefox -new-tab https://github.com/hackclub/hcb/issues/${issue.issueNumber}`;
+}
