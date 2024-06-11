@@ -10,6 +10,16 @@ async function getGithubIssue(index: number): Promise<any> {
             }
         }).then((res) => res.json())
 
+        // check if it has the Unscrubbed label
+        if (!response.labels.some((label: any) => label.name === 'Unscrubbed')) {
+            return { pass: true }
+        } else {
+            // check if it has the Contains PII label
+            if (response.labels.some((label: any) => label.name === 'Contains PII')) {
+                return { pass: true }
+            }
+        }
+
         const comments = await fetch('https://api.github.com/repos/hackclub/hcb/issues/' + index + '/comments', {
             headers: {
                 'Accept': 'application/vnd.github+json',
@@ -42,6 +52,9 @@ async function processBlock() {
             // wait for 5 seconds before trying again
             await new Promise((resolve) => setTimeout(resolve, 5000));
             i--;
+            continue;
+        } else if (issue.pass) {
+            console.log(`Issue ${i} has already been scrubbed!`);
             continue;
         }
 
