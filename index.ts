@@ -71,6 +71,15 @@ async function processBlock() {
 
         if (Object.keys(nlp).length === 0) {
             console.log(`Issue ${i} is clean!`);
+            // remove the "Unscrubbed" label from the issue
+            await fetch(`https://api.github.com/repos/hackclub/hcb/issues/${i}/labels/Unscrubbed`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/vnd.github+json',
+                    'Authorization': 'Bearer ' + process.env.GITHUB_TOKEN,
+                    'X-GitHub-Api-Version': '2022-11-28'
+                }
+            });
             console.log(`Progress: ${Math.round((i - issueStart) / (issueEnd - issueStart) * 100)}%`);
             continue;
         } else {
