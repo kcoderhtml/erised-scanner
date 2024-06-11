@@ -99,6 +99,8 @@ async function processBlock() {
         console.log(`Progress: ${Math.round((i - issueStart) / (issueEnd - issueStart) * 100)}%`);
     }
 
+    console.log(`Percentage of problematic issues: ${problematicIssues.length / (issueEnd - issueStart) * 100}%`);
+
     return problematicIssues;
 }
 
