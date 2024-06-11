@@ -72,14 +72,16 @@ async function processBlock() {
         if (Object.keys(nlp).length === 0) {
             console.log(`Issue ${i} is clean!`);
             // remove the "Unscrubbed" label from the issue
-            await fetch(`https://api.github.com/repos/hackclub/hcb/issues/${i}/labels/Unscrubbed`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/vnd.github+json',
-                    'Authorization': 'Bearer ' + process.env.GITHUB_TOKEN,
-                    'X-GitHub-Api-Version': '2022-11-28'
-                }
-            });
+            if (!interlock) {
+                await fetch(`https://api.github.com/repos/hackclub/hcb/issues/${i}/labels/Unscrubbed`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/vnd.github+json',
+                        'Authorization': 'Bearer ' + process.env.GITHUB_TOKEN,
+                        'X-GitHub-Api-Version': '2022-11-28'
+                    }
+                });
+            }
             console.log(`Progress: ${Math.round((i - issueStart) / (issueEnd - issueStart) * 100)}%`);
             continue;
         } else {
@@ -98,11 +100,15 @@ async function processBlock() {
     return problematicIssues;
 }
 
+const interlock = true
+
 const processed = await processBlock();
 console.log('Processed all issues!');
 
 // for issues that are problematic, open them as a new tab in the browser
 for (const issue of processed) {
     console.log(`Opening issue ${issue.issueNumber} in browser...`);
-    await $`firefox -new-tab https://github.com/hackclub/hcb/issues/${issue.issueNumber}`;
+    if (!interlock) {
+        await $`firefox -new-tab https://github.com/hackclub/hcb/issues/${issue.issueNumber}`;
+    }
 }
