@@ -1,5 +1,7 @@
 # erised-scanner
 
+A tool to help with hcb scrubbing (pretty much a one time tool that will never get used again)
+
 To install dependencies:
 
 ```bash
